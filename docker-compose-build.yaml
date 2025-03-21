@@ -14,20 +14,20 @@ services:
     cap_add:
       - NET_ADMIN
     networks:
-      sbinet:
+      privnet:
         aliases:
           - upf.free5gc.org
 
   db:
     container_name: mongodb
-    image: mongo
+    image: mongo:3.6.8
     command: mongod --port 27017
     expose:
       - "27017"
     volumes:
       - dbdata:/data/db
     networks:
-      sbinet:
+      privnet:
         aliases:
           - db
 
@@ -47,7 +47,7 @@ services:
       DB_URI: mongodb://db/free5gc
       GIN_MODE: release
     networks:
-      sbinet:
+      privnet:
         aliases:
           - nrf.free5gc.org
     depends_on:
@@ -68,7 +68,7 @@ services:
     environment:
       GIN_MODE: release
     networks:
-      sbinet:
+      privnet:
         ipv4_address: 10.100.200.16
         aliases:
           - amf.free5gc.org
@@ -90,7 +90,7 @@ services:
     environment:
       GIN_MODE: release
     networks:
-      sbinet:
+      privnet:
         aliases:
           - ausf.free5gc.org
     depends_on:
@@ -111,7 +111,7 @@ services:
     environment:
       GIN_MODE: release
     networks:
-      sbinet:
+      privnet:
         aliases:
           - nssf.free5gc.org
     depends_on:
@@ -132,7 +132,7 @@ services:
     environment:
       GIN_MODE: release
     networks:
-      sbinet:
+      privnet:
         aliases:
           - pcf.free5gc.org
     depends_on:
@@ -154,7 +154,7 @@ services:
     environment:
       GIN_MODE: release
     networks:
-      sbinet:
+      privnet:
         aliases:
           - smf.free5gc.org
     depends_on:
@@ -176,7 +176,7 @@ services:
     environment:
       GIN_MODE: release
     networks:
-      sbinet:
+      privnet:
         aliases:
           - udm.free5gc.org
     depends_on:
@@ -199,7 +199,7 @@ services:
       DB_URI: mongodb://db/free5gc
       GIN_MODE: release
     networks:
-      sbinet:
+      privnet:
         aliases:
           - udr.free5gc.org
     depends_on:
@@ -223,13 +223,79 @@ services:
       DB_URI: mongodb://db/free5gc
       GIN_MODE: release
     networks:
-      sbinet:
+      privnet:
         aliases:
           - chf.free5gc.org
     depends_on:
       - db
       - free5gc-nrf
       - free5gc-webui
+
+  free5gc-n3iwf:
+    container_name: n3iwf
+    build:
+      context: ./nf_n3iwf
+      args:
+        DEBUG_TOOLS: "false"
+    command: ./n3iwf -c ./config/n3iwfcfg.yaml
+    volumes:
+      - ./config/n3iwfcfg.yaml:/free5gc/config/n3iwfcfg.yaml
+      - ./config/n3iwf-ipsec.sh:/free5gc/n3iwf-ipsec.sh
+    environment:
+      GIN_MODE: release
+    cap_add:
+      - NET_ADMIN
+    networks:
+      privnet:
+        ipv4_address: 10.100.200.15
+        aliases:
+          - n3iwf.free5gc.org
+    depends_on:
+      - free5gc-amf
+      - free5gc-smf
+      - free5gc-upf
+
+  free5gc-tngf:
+    container_name: tngf
+    build:
+      context: ./nf_tngf
+      args:
+        DEBUG_TOOLS: "false"
+    command: ./tngf -c ./config/tngfcfg.yaml
+    volumes:
+      - ./config/tngfcfg.yaml:/free5gc/config/tngfcfg.yaml
+      - ./cert:/free5gc/cert
+    environment:
+      GIN_MODE: release
+    cap_add:
+      - NET_ADMIN
+    network_mode: host
+    depends_on:
+      - free5gc-amf
+      - free5gc-smf
+      - free5gc-upf
+
+  free5gc-nef:
+    container_name: nef
+    build:
+      context: ./nf_nef
+      args:
+        DEBUG_TOOLS: "false"
+    command: ./nef -c ./config/nefcfg.yaml
+    expose:
+      - "8000"
+    volumes:
+      - ./config/nefcfg.yaml:/free5gc/config/nefcfg.yaml
+      - ./cert:/free5gc/cert
+    environment:
+      GIN_MODE: release
+    networks:
+      privnet:
+        aliases:
+          - nef.free5gc.org
+    depends_on:
+      - db
+      - free5gc-nrf
 
   free5gc-webui:
     container_name: webui
@@ -245,7 +311,7 @@ services:
     environment:
       - GIN_MODE=release
     networks:
-      sbinet:
+      privnet:
         aliases:
           - webui
     ports:
@@ -267,15 +333,34 @@ services:
     devices:
       - "/dev/net/tun"
     networks:
-      sbinet:
+      privnet:
         aliases:
           - gnb.free5gc.org
     depends_on:
       - free5gc-amf
       - free5gc-upf
 
+  n3iwue:
+    container_name: n3iwue
+    build:
+      context: ./n3iwue
+    command: bash -c "ip route del default && ip route add default via 10.100.200.1 dev eth0 metric 203 && sleep infinity"
+    volumes:
+      - ./config/n3uecfg.yaml:/n3iwue/config/n3ue.yaml
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - "/dev/net/tun"
+    networks:
+      privnet:
+        ipv4_address: 10.100.200.203
+        aliases:
+          - n3ue.free5gc.org
+    depends_on:
+      - free5gc-n3iwf
+
 networks:
-  sbinet:
+  privnet:
     ipam:
       driver: default
       config:
