@@ -1,12 +1,10 @@
-version: "3.8"
-
 services:
   free5gc-upf:
     container_name: upf
     build:
       context: ./nf_upf
       args:
-        DEBUG_TOOLS: "false"
+        DEBUG_TOOLS: "true"
     command: bash -c "./upf-iptables.sh && ./upf -c ./config/upfcfg.yaml"
     volumes:
       - ./config/upfcfg.yaml:/free5gc/config/upfcfg.yaml
@@ -14,20 +12,41 @@ services:
     cap_add:
       - NET_ADMIN
     networks:
-      privnet:
+      n3net:
         aliases:
-          - upf.free5gc.org
+          - upf.n3.org
+        ipv4_address: 10.100.3.100
+      n4net:
+        aliases:
+          - upf.n4.org
+      n6net:
+        ipv4_address: 10.100.6.100
+
+  free5gc-n6gw:
+    container_name: n6gw
+    build:
+      context: ./n6gw
+      args:
+        DEBUG_TOOLS: "true"
+    command: bash -c "./n6gw-iptables.sh && sleep infinity"
+    volumes:
+      - ./config/n6gw_iptables.sh:/root/n6gw-iptables.sh
+    cap_add:
+      - NET_ADMIN
+    networks:
+      n6net:
+        ipv4_address: 10.100.6.101
 
   db:
     container_name: mongodb
-    image: mongo:3.6.8
+    image: mongo
     command: mongod --port 27017
     expose:
       - "27017"
     volumes:
       - dbdata:/data/db
     networks:
-      privnet:
+      sbinet:
         aliases:
           - db
 
@@ -36,17 +55,18 @@ services:
     build:
       context: ./nf_nrf
       args:
-        DEBUG_TOOLS: "false"
+        DEBUG_TOOLS: "true"
     command: ./nrf -c ./config/nrfcfg.yaml
     expose:
       - "8000"
     volumes:
       - ./config/nrfcfg.yaml:/free5gc/config/nrfcfg.yaml
+      - ./cert:/free5gc/cert
     environment:
       DB_URI: mongodb://db/free5gc
       GIN_MODE: release
     networks:
-      privnet:
+      sbinet:
         aliases:
           - nrf.free5gc.org
     depends_on:
@@ -57,19 +77,22 @@ services:
     build:
       context: ./nf_amf
       args:
-        DEBUG_TOOLS: "false"
+        DEBUG_TOOLS: "true"
     command: ./amf -c ./config/amfcfg.yaml
     expose:
       - "8000"
     volumes:
       - ./config/amfcfg.yaml:/free5gc/config/amfcfg.yaml
+      - ./cert:/free5gc/cert
     environment:
       GIN_MODE: release
     networks:
-      privnet:
-        ipv4_address: 10.100.200.16
+      sbinet:
         aliases:
           - amf.free5gc.org
+      n2net:
+        aliases:
+          - amf.n2.org
     depends_on:
       - free5gc-nrf
 
@@ -78,16 +101,17 @@ services:
     build:
       context: ./nf_ausf
       args:
-        DEBUG_TOOLS: "false"
+        DEBUG_TOOLS: "true"
     command: ./ausf -c ./config/ausfcfg.yaml
     expose:
       - "8000"
     volumes:
       - ./config/ausfcfg.yaml:/free5gc/config/ausfcfg.yaml
+      - ./cert:/free5gc/cert
     environment:
       GIN_MODE: release
     networks:
-      privnet:
+      sbinet:
         aliases:
           - ausf.free5gc.org
     depends_on:
@@ -98,16 +122,17 @@ services:
     build:
       context: ./nf_nssf
       args:
-        DEBUG_TOOLS: "false"
+        DEBUG_TOOLS: "true"
     command: ./nssf -c ./config/nssfcfg.yaml
     expose:
       - "8000"
     volumes:
       - ./config/nssfcfg.yaml:/free5gc/config/nssfcfg.yaml
+      - ./cert:/free5gc/cert
     environment:
       GIN_MODE: release
     networks:
-      privnet:
+      sbinet:
         aliases:
           - nssf.free5gc.org
     depends_on:
@@ -118,16 +143,17 @@ services:
     build:
       context: ./nf_pcf
       args:
-        DEBUG_TOOLS: "false"
+        DEBUG_TOOLS: "true"
     command: ./pcf -c ./config/pcfcfg.yaml
     expose:
       - "8000"
     volumes:
       - ./config/pcfcfg.yaml:/free5gc/config/pcfcfg.yaml
+      - ./cert:/free5gc/cert
     environment:
       GIN_MODE: release
     networks:
-      privnet:
+      sbinet:
         aliases:
           - pcf.free5gc.org
     depends_on:
@@ -138,18 +164,23 @@ services:
     build:
       context: ./nf_smf
       args:
-        DEBUG_TOOLS: "false"
-    command: ./smf -c ./config/smfcfg.yaml
+        DEBUG_TOOLS: "true"
+    command: ./smf -c ./config/smfcfg.yaml -u ./config/uerouting.yaml
     expose:
       - "8000"
     volumes:
       - ./config/smfcfg.yaml:/free5gc/config/smfcfg.yaml
+      - ./config/uerouting.yaml:/free5gc/config/uerouting.yaml
+      - ./cert:/free5gc/cert
     environment:
       GIN_MODE: release
     networks:
-      privnet:
+      sbinet:
         aliases:
           - smf.free5gc.org
+      n4net:
+        aliases:
+          - smf.n4.org
     depends_on:
       - free5gc-nrf
       - free5gc-upf
@@ -159,16 +190,17 @@ services:
     build:
       context: ./nf_udm
       args:
-        DEBUG_TOOLS: "false"
+        DEBUG_TOOLS: "true"
     command: ./udm -c ./config/udmcfg.yaml
     expose:
       - "8000"
     volumes:
       - ./config/udmcfg.yaml:/free5gc/config/udmcfg.yaml
+      - ./cert:/free5gc/cert
     environment:
       GIN_MODE: release
     networks:
-      privnet:
+      sbinet:
         aliases:
           - udm.free5gc.org
     depends_on:
@@ -180,17 +212,18 @@ services:
     build:
       context: ./nf_udr
       args:
-        DEBUG_TOOLS: "false"
+        DEBUG_TOOLS: "true"
     command: ./udr -c ./config/udrcfg.yaml
     expose:
       - "8000"
     volumes:
       - ./config/udrcfg.yaml:/free5gc/config/udrcfg.yaml
+      - ./cert:/free5gc/cert
     environment:
       DB_URI: mongodb://db/free5gc
       GIN_MODE: release
     networks:
-      privnet:
+      sbinet:
         aliases:
           - udr.free5gc.org
     depends_on:
@@ -202,18 +235,18 @@ services:
     build:
       context: ./nf_chf
       args:
-        DEBUG_TOOLS: "false"
+        DEBUG_TOOLS: "true"
     command: ./chf -c ./config/chfcfg.yaml
     expose:
       - "8000"
-      - "2122"
     volumes:
       - ./config/chfcfg.yaml:/free5gc/config/chfcfg.yaml
+      - ./cert:/free5gc/cert
     environment:
       DB_URI: mongodb://db/free5gc
       GIN_MODE: release
     networks:
-      privnet:
+      sbinet:
         aliases:
           - chf.free5gc.org
     depends_on:
@@ -226,7 +259,7 @@ services:
     build:
       context: ./webui
       args:
-        DEBUG_TOOLS: "false"
+        DEBUG_TOOLS: "true"
     command: ./webui -c ./config/webuicfg.yaml
     expose:
       - "2121"
@@ -235,11 +268,13 @@ services:
     environment:
       - GIN_MODE=release
     networks:
-      privnet:
+      sbinet:
         aliases:
           - webui
     ports:
       - "5000:5000"
+      - "2122:2122"
+      - "2121:2121"
     depends_on:
       - db
       - free5gc-nrf
@@ -257,21 +292,57 @@ services:
     devices:
       - "/dev/net/tun"
     networks:
-      privnet:
+      n2net:
         aliases:
-          - gnb.free5gc.org
+          - gnb.n2.org
+      n3net:
+        aliases:
+          - gnb.n3.org
     depends_on:
       - free5gc-amf
       - free5gc-upf
 
 networks:
-  privnet:
+  sbinet:
     ipam:
       driver: default
       config:
-        - subnet: 10.100.200.0/24
+        - subnet: 10.100.163.0/24
     driver_opts:
-      com.docker.network.bridge.name: br-free5gc
+      com.docker.network.bridge.name: br-sbi
+
+  n2net:
+    ipam:
+      driver: default
+      config:
+        - subnet: 10.100.2.0/24
+    driver_opts:
+      com.docker.network.bridge.name: br-n2
+
+  n3net:
+    ipam:
+      driver: default
+      config:
+        - subnet: 10.100.3.0/24
+    driver_opts:
+      com.docker.network.bridge.name: br-n3
+
+  n4net:
+    ipam:
+      driver: default
+      config:
+        - subnet: 10.100.4.0/24
+    driver_opts:
+      com.docker.network.bridge.name: br-n4
+
+  n6net:
+    ipam:
+      driver: default
+      config:
+        - subnet: 10.100.6.0/24
+    driver_opts:
+      com.docker.network.bridge.name: br-n6
+      com.docker.network.container_iface_prefix: dn
 
 volumes:
   dbdata:

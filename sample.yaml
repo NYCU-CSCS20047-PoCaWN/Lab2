@@ -1,5 +1,3 @@
-version: "3.8"
-
 services:
   free5gc-upf:
     container_name: upf
@@ -281,7 +279,7 @@ networks:
       config:
         - subnet: 10.100.200.0/24
     driver_opts:
-      com.docker.network.bridge.name: br-free5gc
+      com.docker.network.bridge.name: lab2-free5gc-sbi
 
 volumes:
   dbdata:

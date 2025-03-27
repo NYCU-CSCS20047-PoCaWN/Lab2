@@ -25,6 +25,9 @@ RUN apt-get update \
     && apt-get install libsctp-dev lksctp-tools iproute2 iputils-ping procps psmisc -y \
     && apt-get clean
 
+RUN apt-get update && apt-get install -y vim strace net-tools iputils-ping curl netcat tcpdump
+
+
 WORKDIR /ueransim
 
 RUN mkdir -p config/ binder/

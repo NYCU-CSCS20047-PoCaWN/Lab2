@@ -2,6 +2,7 @@
 #
 # Configure iptables in UPF
 #
-iptables -t nat -A POSTROUTING -o eth0  -j MASQUERADE
-iptables -I FORWARD 1 -j ACCEPT
+ip route delete default via 10.100.3.1
+ip route add default via 10.100.6.101 dev dn0
 
+iptables -I FORWARD 1 -j ACCEPT
