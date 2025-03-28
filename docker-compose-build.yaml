@@ -165,7 +165,7 @@ services:
       context: ./nf_smf
       args:
         DEBUG_TOOLS: "true"
-    command: ./smf -c ./config/smfcfg.yaml -u ./config/uerouting.yaml
+    command: ./smf -c ./config/smfcfg.yaml
     expose:
       - "8000"
     volumes:
