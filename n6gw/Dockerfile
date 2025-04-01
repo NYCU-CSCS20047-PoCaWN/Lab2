@@ -3,7 +3,7 @@ FROM bitnami/minideb:bullseye
 ENV DEBIAN_FRONTEND noninteractive
 ARG DEBUG_TOOLS
 
-RUN apt-get update && apt-get install -y vim strace net-tools iputils-ping curl netcat tcpdump
+RUN apt-get update && apt-get install -y strace net-tools iputils-ping curl netcat tcpdump
 
 # Install UPF dependencies
 RUN apt-get update \

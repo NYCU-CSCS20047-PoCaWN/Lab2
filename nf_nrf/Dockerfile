@@ -7,9 +7,6 @@ LABEL description="Free5GC open source 5G Core Network" \
 ENV F5GC_MODULE=nrf
 ARG DEBUG_TOOLS
 
-# Install debug tools ~ 100MB (if DEBUG_TOOLS is set to true)
-RUN if [ "$DEBUG_TOOLS" = "true" ] ; then apk add -U vim strace net-tools curl netcat-openbsd ; fi
-
 # Set working dir
 WORKDIR /free5gc
 RUN mkdir -p config/ log/ cert/
