@@ -28,6 +28,9 @@ configuration:
     hostIPv4: webui
     port: 2121
     listenPort: 2122
+    passiveTransferPortRange: # Range of ports used for passive FTP data transfer connections
+      start: 2123 # Starting port number for passive mode data connections
+      end: 2130 # Ending port number for passive mode data connections
     tls:
       pem: cert/chf.pem
       key: cert/chf.key
