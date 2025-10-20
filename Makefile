@@ -3,7 +3,14 @@ DOCKER_IMAGE_NAME = 'base'
 DOCKER_IMAGE_TAG = 'latest'
 
 .PHONY: base
-all: base amf ausf nrf nssf pcf smf udm udr upf chf webconsole
+
+# 2025/10/20 For reducing build time, temporarily disable building all modules
+# Only build base and nrf modules for this Lab.
+all: base nrf
+	echo "Built selected modules: base, amf, smf, upf"
+
+# all: base amf ausf nrf nssf pcf smf udm udr upf chf webconsole
+
 
 base:
 	docker build -t ${DOCKER_IMAGE_OWNER}/${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG} ./base

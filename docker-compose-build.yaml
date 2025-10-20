@@ -26,8 +26,6 @@ services:
     container_name: n6gw
     build:
       context: ./n6gw
-      args:
-        DEBUG_TOOLS: "true"
     command: bash -c "./n6gw-iptables.sh && sleep infinity"
     volumes:
       - ./config/n6gw_iptables.sh:/root/n6gw-iptables.sh
@@ -39,7 +37,7 @@ services:
 
   db:
     container_name: mongodb
-    image: mongo
+    image: mongo:4.4
     command: mongod --port 27017
     expose:
       - "27017"
@@ -52,10 +50,7 @@ services:
 
   free5gc-nrf:
     container_name: nrf
-    build:
-      context: ./nf_nrf
-      args:
-        DEBUG_TOOLS: "true"
+    image: free5gc/nrf:v4.1.0
     command: ./nrf -c ./config/nrfcfg.yaml
     expose:
       - "8000"
@@ -98,10 +93,7 @@ services:
 
   free5gc-ausf:
     container_name: ausf
-    build:
-      context: ./nf_ausf
-      args:
-        DEBUG_TOOLS: "true"
+    image: free5gc/ausf:v4.1.0
     command: ./ausf -c ./config/ausfcfg.yaml
     expose:
       - "8000"
@@ -119,10 +111,7 @@ services:
 
   free5gc-nssf:
     container_name: nssf
-    build:
-      context: ./nf_nssf
-      args:
-        DEBUG_TOOLS: "true"
+    image: free5gc/nssf:v4.1.0
     command: ./nssf -c ./config/nssfcfg.yaml
     expose:
       - "8000"
@@ -140,10 +129,7 @@ services:
 
   free5gc-pcf:
     container_name: pcf
-    build:
-      context: ./nf_pcf
-      args:
-        DEBUG_TOOLS: "true"
+    image: free5gc/pcf:v4.1.0
     command: ./pcf -c ./config/pcfcfg.yaml
     expose:
       - "8000"
@@ -187,10 +173,7 @@ services:
 
   free5gc-udm:
     container_name: udm
-    build:
-      context: ./nf_udm
-      args:
-        DEBUG_TOOLS: "true"
+    image: free5gc/udm:v4.1.0
     command: ./udm -c ./config/udmcfg.yaml
     expose:
       - "8000"
@@ -209,10 +192,7 @@ services:
 
   free5gc-udr:
     container_name: udr
-    build:
-      context: ./nf_udr
-      args:
-        DEBUG_TOOLS: "true"
+    image: free5gc/udr:v4.1.0
     command: ./udr -c ./config/udrcfg.yaml
     expose:
       - "8000"
@@ -232,10 +212,7 @@ services:
 
   free5gc-chf:
     container_name: chf
-    build:
-      context: ./nf_chf
-      args:
-        DEBUG_TOOLS: "true"
+    image: free5gc/chf:v4.1.0
     command: ./chf -c ./config/chfcfg.yaml
     expose:
       - "8000"
@@ -256,10 +233,7 @@ services:
 
   free5gc-webui:
     container_name: webui
-    build:
-      context: ./webui
-      args:
-        DEBUG_TOOLS: "true"
+    image: free5gc/webui:v4.1.0
     command: ./webui -c ./config/webuicfg.yaml
     expose:
       - "2121"
@@ -281,8 +255,7 @@ services:
 
   ueransim:
     container_name: ueransim
-    build:
-      context: ./ueransim
+    image: free5gc/ueransim:latest
     command: ./nr-gnb -c ./config/gnbcfg.yaml
     volumes:
       - ./config/gnbcfg.yaml:/ueransim/config/gnbcfg.yaml
