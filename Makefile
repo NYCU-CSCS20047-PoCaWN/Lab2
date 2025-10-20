@@ -5,8 +5,8 @@ DOCKER_IMAGE_TAG = 'latest'
 .PHONY: base
 
 # 2025/10/20 For reducing build time, temporarily disable building all modules
-# Only build base and nrf modules for this Lab.
-all: base nrf
+# Only build amf, smf, upf modules for this Lab.
+all: base amf smf upf
 	echo "Built selected modules: base, amf, smf, upf"
 
 # all: base amf ausf nrf nssf pcf smf udm udr upf chf webconsole
